@@ -81,7 +81,7 @@ def load_data(timeframe,now, custom_start, custom_end, show_sma, show_sma50,show
     fig.update_layout(
         #title=f'Biểu đồ nến và MACD của cổ phiếu {selected_stock}',
         xaxis_title='Ngày giao dịch',yaxis_title='Giá cổ phiếu',xaxis_rangeslider_visible=False, 
-        yaxis=dict(title='Giá cổ phiếu'),xaxis2=dict(title='MACD', overlaying='y', side='right'),height=600)
+        yaxis=dict(title='Giá cổ phiếu'),xaxis2=dict(title='MACD', overlaying='y', side='right'),height=600,margin=dict(l=0, r=0, t=15, b=0))
     st.plotly_chart(fig)
 
 def macd(timeframe,now, custom_start, custom_end):
@@ -117,7 +117,7 @@ def macd(timeframe,now, custom_start, custom_end):
     fig.update_layout(
         xaxis_title="Ngày giao dịch",
         yaxis_title="Giá trị MACD",
-        height=300,xaxis_rangeslider_visible=False,showlegend=True,  
+        height=300,xaxis_rangeslider_visible=False,showlegend=True,,margin=dict(l=0, r=0, t=15, b=0) 
         legend=dict(
             orientation="h",  # Đặt legend theo chiều ngang
             yanchor="bottom",  # Gắn legend vào đáy biểu đồ
