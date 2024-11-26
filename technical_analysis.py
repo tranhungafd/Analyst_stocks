@@ -117,7 +117,7 @@ def macd(timeframe,now, custom_start, custom_end):
     fig.update_layout(
         xaxis_title="Ngày giao dịch",
         yaxis_title="Giá trị MACD",
-        height=300,xaxis_rangeslider_visible=False,showlegend=True,,margin=dict(l=0, r=0, t=15, b=0) 
+        height=300,xaxis_rangeslider_visible=False,showlegend=True,margin=dict(l=0, r=0, t=15, b=0),
         legend=dict(
             orientation="h",  # Đặt legend theo chiều ngang
             yanchor="bottom",  # Gắn legend vào đáy biểu đồ
