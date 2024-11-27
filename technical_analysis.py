@@ -4,6 +4,7 @@ import streamlit as st
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
+import concurrent.futures
 st.set_page_config(layout="wide")
 
 now = datetime.now().strftime('%Y-%m-%d')
@@ -81,7 +82,8 @@ def load_data(timeframe,now, custom_start, custom_end, show_sma, show_sma50,show
     fig.update_layout(
         #title=f'Biểu đồ nến và MACD của cổ phiếu {selected_stock}',
         xaxis_title='Ngày giao dịch',yaxis_title='Giá cổ phiếu',xaxis_rangeslider_visible=False, 
-        yaxis=dict(title='Giá cổ phiếu'),xaxis2=dict(title='MACD', overlaying='y', side='right'),height=600,margin=dict(l=0, r=0, t=15, b=0))
+        yaxis=dict(title='Giá cổ phiếu'),xaxis2=dict(title='MACD', overlaying='y', side='right'),
+        height=600,margin=dict(l=0, r=0, t=20, b=0))
     st.plotly_chart(fig)
 
 def macd(timeframe,now, custom_start, custom_end):
@@ -117,7 +119,7 @@ def macd(timeframe,now, custom_start, custom_end):
     fig.update_layout(
         xaxis_title="Ngày giao dịch",
         yaxis_title="Giá trị MACD",
-        height=300,xaxis_rangeslider_visible=False,showlegend=True,margin=dict(l=0, r=0, t=15, b=0),
+        height=300,xaxis_rangeslider_visible=False,showlegend=True,margin=dict(l=0, r=0, t=20, b=0),
         legend=dict(
             orientation="h",  # Đặt legend theo chiều ngang
             yanchor="bottom",  # Gắn legend vào đáy biểu đồ
@@ -213,21 +215,26 @@ with col3:
 
     st.write('Cổ phiếu cùng ngành tăng trưởng tốt nhất tuần qua')
     # danh sách các cổ phiếu trong cùng ngành
+    now = datetime.now()
+    start_date = (now - timedelta(days=7)).strftime('%Y-%m-%d')
+    end_date = now.strftime('%Y-%m-%d')
+
     df_industries = stock.listing.symbols_by_industries()
     icb_group = df_industries.loc[df_industries['symbol'] == selected_stock, 'icb_name3'].values[0]
     same_industry_stocks = df_industries[df_industries['icb_name3'] == icb_group]['symbol']
 
-    # Tính toán % tăng trưởng của các cổ phiếu cùng ngành
-    result = []
-    for symbol in same_industry_stocks:
-        df_price = stock.quote.history(symbol=symbol, start='2024-11-01', end='2024-11-18', interval='1D')
-        if len(df_price) >= 2:  # Đảm bảo có ít nhất 2 phiên giao dịch
+    def calculate_growth(symbol):
+        df_price = stock.quote.history(symbol=symbol, start=start_date, end=end_date, interval='1D')
+        if len(df_price) >= 2:
             last_close = df_price['close'].iloc[-1]
             prev_close = df_price['close'].iloc[-2]
-            growth = ((last_close - prev_close) / prev_close) * 100  
-            result.append({'CP': symbol, 'Giá': last_close, '%': growth})
+            growth = round(((last_close - prev_close) / prev_close) * 100, 5)
+            return {'CP': symbol, 'Giá': last_close, '%': growth}
         else:
-            result.append({'CP': symbol, 'Giá': None, '%': None})  
+            return {'CP': symbol, 'Giá': None, '%': None}
+    result = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        result = list(executor.map(calculate_growth, same_industry_stocks))
 
     df_result = pd.DataFrame(result)
     df_sorted = df_result[df_result['CP'] != selected_stock].sort_values(by='%', ascending=False).reset_index(drop=True)
